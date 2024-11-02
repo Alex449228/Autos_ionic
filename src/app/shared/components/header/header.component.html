@@ -1,0 +1,20 @@
+<ion-header class="ion-no-border custom-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <!-- Botón de regresar, se muestra solo si hay un backButton -->
+      <ion-back-button *ngIf="backButton" [defaultHref]="backButton"></ion-back-button>
+
+      <!-- Botón para cerrar el modal, se muestra solo si isModal es true -->
+      <ion-button (click)="dismissModal()" *ngIf="isModal">
+        <ion-icon name="close-circle-outline" color="dark"></ion-icon>
+      </ion-button>
+
+      <!-- Botón del menú (3 rayas), se muestra solo si no es un modal -->
+      <ion-menu-button *ngIf="!isModal"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center">
+      <strong>{{ title }}</strong>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
