@@ -14,6 +14,7 @@ export class MainPage implements OnInit {
   pages = [
     {title: 'Inicio', url: '/main/home', icon: 'home-outline'},
     {title: 'Perfil', url: '/main/profile', icon: 'person-outline'},
+    {title: 'Sobre Nosotros', url: '/main/about-us', icon: 'information-circle-outline'},
   ]
 
   // Array de colores para las iniciales

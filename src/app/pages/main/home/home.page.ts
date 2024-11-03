@@ -11,12 +11,13 @@ import { AddUpdateProductComponent } from 'src/app/shared/components/add-update-
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
-
   firebaseSvc = inject(FirebaseService);
   utilsSvc = inject(UtilsService);
 
   products: Vehicle[] = [];
   loading: boolean = false;
+  userProducts: Vehicle[] = []; // Productos del usuario actual
+  isMyProducts: boolean = false; // Toggle para cambiar entre todos los productos y mis productos
 
   ngOnInit() {
   }
@@ -26,46 +27,103 @@ export class HomePage implements OnInit {
   }
 
   ionViewWillEnter() {
-    this.getProducts();
+    this.getAllProducts();
+    this.getMyProducts(); // Obtenemos también los productos del usuario
   }
 
   doRefresh(event) {
     setTimeout(() => {
-      this.getProducts();
+      if (this.isMyProducts) {
+        this.getMyProducts();
+      } else {
+        this.getAllProducts();
+      }
       event.target.complete();
     }, 1000);
   }
 
-  // ======= Obtener los autos ==============
-  getProducts() {
-    let path = `users/${this.user().uid}/products`;
+  // ======= Obtener todos los autos de todos los usuarios ==============
+  getAllProducts() {
+    this.loading = true;
+    let sub = this.firebaseSvc.getAllProducts().subscribe({
+      next: (res: any) => {
+        console.log('Todos los productos:', res);
+        this.products = res;
+        this.loading = false;
+        sub.unsubscribe();
+      },
+      error: (error) => {
+        console.error('Error al cargar productos:', error);
+        this.loading = false;
+        this.utilsSvc.presentToast({
+          message: 'Error al cargar los productos',
+          duration: 2500,
+          color: 'danger',
+          position: 'middle',
+          icon: 'alert-circle-outline',
+        });
+      }
+    });
+  }
 
+  // ======= Obtener los autos del usuario actual ==============
+  getMyProducts() {
+    let path = `users/${this.user().uid}/products`;
     this.loading = true;
 
     let sub = this.firebaseSvc.getCollectionData(path).subscribe({
       next: (res: any) => {
-        console.log(res);
-        this.products = res;
-
+        console.log('Mis productos:', res);
+        this.userProducts = res;
+        if (this.isMyProducts) {
+          this.products = this.userProducts;
+        }
         this.loading = false;
-
         sub.unsubscribe();
       }
-    })
+    });
   }
 
-  // =========== Agregar productos ===============
+  // ======= Toggle entre todos los productos y mis productos ==============
+  toggleProductView() {
+    this.isMyProducts = !this.isMyProducts;
+    this.products = this.isMyProducts ? this.userProducts : [];
+    if (this.isMyProducts) {
+      this.getMyProducts();
+    } else {
+      this.getAllProducts();
+    }
+  }
+
+  // =========== Agregar o actualizar productos ===============
   async addUpdateProduct(product?: Vehicle) {
-    let success = await this.utilsSvc.presentModal ({
+    let success = await this.utilsSvc.presentModal({
       component: AddUpdateProductComponent,
       cssClass: 'add-update-modal',
       componentProps: { product }
-    })
-    if(success) this.getProducts();
+    });
+    if (success) {
+      this.getMyProducts();
+      if (!this.isMyProducts) {
+        this.getAllProducts(); // Actualizar también la vista general si estamos en ella
+      }
+    }
   }
 
-  // ========== Confirmar eliminacion ============
+  // ========== Confirmar eliminación ============
   async confirmDeleteProduct(product: Vehicle) {
+    // Verificar si el producto pertenece al usuario actual
+    if (product.sellerUid !== this.user().uid) {
+      this.utilsSvc.presentToast({
+        message: 'Solo puedes eliminar tus propios productos',
+        duration: 2500,
+        color: 'warning',
+        position: 'middle',
+        icon: 'alert-circle-outline',
+      });
+      return;
+    }
+
     this.utilsSvc.presentAlert({
       header: 'Eliminar Producto',
       message: '¿Quieres eliminar este producto?',
@@ -89,36 +147,38 @@ export class HomePage implements OnInit {
     const loading = await this.utilsSvc.loading();
     await loading.present;
 
-    let imagePath = await this.firebaseSvc.getFilePath(product.image);
-    await this.firebaseSvc.deleteFile(imagePath);
+    try {
+      let imagePath = await this.firebaseSvc.getFilePath(product.image);
+      await this.firebaseSvc.deleteFile(imagePath);
 
-    this.firebaseSvc
-      .deleteDocument(path)
-      .then(async (res) => {
+      await this.firebaseSvc.deleteDocument(path);
+      
+      this.products = this.products.filter(p => p.id !== product.id);
+      this.userProducts = this.userProducts.filter(p => p.id !== product.id);
 
-        this.products = this.products.filter(p => p.id !== product.id);
-
-        this.utilsSvc.presentToast({
-          message: 'Producto eliminado exitosamente',
-          duration: 1500,
-          color: 'success',
-          position: 'middle',
-          icon: 'checkmark-circle-outline',
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-
-        this.utilsSvc.presentToast({
-          message: error.message,
-          duration: 2500,
-          color: 'primary',
-          position: 'middle',
-          icon: 'alert-circle-outline',
-        });
-      })
-      .finally(() => {
-        loading.dismiss();
+      this.utilsSvc.presentToast({
+        message: 'Producto eliminado exitosamente',
+        duration: 1500,
+        color: 'success',
+        position: 'middle',
+        icon: 'checkmark-circle-outline',
       });
+    } catch (error) {
+      console.log(error);
+      this.utilsSvc.presentToast({
+        message: error.message,
+        duration: 2500,
+        color: 'danger',
+        position: 'middle',
+        icon: 'alert-circle-outline',
+      });
+    } finally {
+      loading.dismiss();
+    }
+  }
+
+  // ======= Verificar si un producto pertenece al usuario actual ==============
+  isUserProduct(product: Vehicle): boolean {
+    return product.sellerUid === this.user().uid;
   }
 }

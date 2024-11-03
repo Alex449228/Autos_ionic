@@ -20,6 +20,9 @@ import {
   query,
   updateDoc,
   deleteDoc,
+  orderBy,
+  where,
+  getDocs
 } from '@angular/fire/firestore';
 import { UtilsService } from './utils.service';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
@@ -30,6 +33,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from 'firebase/storage';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -78,20 +82,58 @@ export class FirebaseService {
   // ======== Cerrar sesión ===========
   async signOut() {
     try {
-      await getAuth().signOut(); // Espera a que se cierre la sesión
-      localStorage.removeItem('user'); // Elimina el usuario del almacenamiento local
-      this.utilsSvc.routerLink('/auth'); // Redirigir a la página de autenticación
+      await getAuth().signOut();
+      localStorage.removeItem('user');
+      this.utilsSvc.routerLink('/auth');
     } catch (error) {
-      console.error('Error al cerrar sesión: ', error); // Manejo de errores
+      console.error('Error al cerrar sesión: ', error);
     }
   }
 
   // ======== Base de datos ===========
 
+  // ========== Obtener todos los productos para el Home ==========
+  getAllProducts(): Observable<any[]> {
+    // Crear un array para almacenar todos los productos
+    let allProducts = [];
+    
+    // Obtener referencia a la colección de usuarios
+    const usersRef = collection(getFirestore(), 'users');
+    
+    // Query para obtener todos los documentos de productos
+    return new Observable(observer => {
+      getDocs(usersRef).then(async userSnapshots => {
+        for (const userDoc of userSnapshots.docs) {
+          // Para cada usuario, obtener su colección de productos
+          const productsRef = collection(getFirestore(), `users/${userDoc.id}/products`);
+          const productsQuery = query(productsRef, orderBy('createdAt', 'desc'));
+          
+          const productsSnapshot = await getDocs(productsQuery);
+          const products = productsSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+          }));
+          
+          allProducts = [...allProducts, ...products];
+        }
+        
+        // Ordenar todos los productos por fecha de creación
+        allProducts.sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        
+        observer.next(allProducts);
+        observer.complete();
+      }).catch(error => {
+        observer.error(error);
+      });
+    });
+  }
+
   // ========== Mostrar datos de la publicacion ============
   getCollectionData(path: string, collectionQuery?: any) {
     const ref = collection(getFirestore(), path);
-    return collectionData(query(ref, collectionQuery), { idField: 'id' });
+    return collectionData(query(ref, ...[collectionQuery].filter(q => q)), { idField: 'id' });
   }
 
   setDocument(path: string, data: any) {
@@ -105,7 +147,8 @@ export class FirebaseService {
       ...data,
       sellerName: user.name || user.displayName,
       sellerUid: user.uid,
-      sellerEmail: user.email
+      sellerEmail: user.email,
+      updatedAt: new Date().toISOString()
     };
     return updateDoc(doc(getFirestore(), path), dataWithSeller);
   }
@@ -127,7 +170,9 @@ export class FirebaseService {
       ...data,
       sellerName: user.name || user.displayName,
       sellerUid: user.uid,
-      sellerEmail: user.email
+      sellerEmail: user.email,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     return addDoc(collection(getFirestore(), path), dataWithSeller);
   }

@@ -9,10 +9,12 @@ import { AppRoutingModule } from './app-routing.module';
 
 // ========== Firebase ==============
 import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';  // Para Firestore
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';  // Para autenticación
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore'; // Para Firestore
+import { AngularFireAuthModule } from '@angular/fire/compat/auth'; // Para autenticación
 
 import { environment } from 'src/environments/environment.prod';
+import { GoogleMapsModule } from '@angular/google-maps';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -21,8 +23,10 @@ import { environment } from 'src/environments/environment.prod';
     IonicModule.forRoot({ mode: 'md' }),
     AppRoutingModule,
     AngularFireModule.initializeApp(environment.firebaseConfig),
-    AngularFirestoreModule,  // Importa el módulo Firestore
-    AngularFireAuthModule    // Importa el módulo Auth
+    AngularFirestoreModule, // Importa el módulo Firestore
+    AngularFireAuthModule,
+    GoogleMapsModule,
+    SharedModule,
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
