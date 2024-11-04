@@ -1,17 +1,19 @@
 <app-header title="Perfil"></app-header>
 
-<ion-content>
+<ion-content class="ion-padding">
   <div class="profile-container">
-    <!--<img [src]="user.image" alt="Profile Image" class="profile-image">-->
-    <h2>{{ user.name }}</h2>
-    <p>{{ user.email }}</p>
+    <div class="profile-initials" [style.background-color]="getInitialBackground()">
+      {{ getUserInitial() }}
+    </div>
+    <h2 class="user-name">{{ user.name }}</h2>
+    <p class="user-email">{{ user.email }}</p>
   </div>
 
   <div class="products-container">
     <h3>Mis Publicaciones</h3>
     <div class="table-responsive">
       <ion-grid>
-        <ion-row>
+        <ion-row class="table-header">
           <ion-col>#</ion-col>
           <ion-col>Marca</ion-col>
           <ion-col>Modelo</ion-col>
@@ -27,9 +29,13 @@
           <ion-col>{{ product.anio }}</ion-col>
           <ion-col>{{ product.precio | currency }}</ion-col>
           <ion-col>{{ product.kilometraje | number }}</ion-col>
-          <ion-col>
-            <ion-button (click)="addUpdateProduct(product)" color="primary">Editar</ion-button>
-            <ion-button (click)="confirmDeleteProduct(product)" color="danger">Eliminar</ion-button>
+          <ion-col class="action-buttons">
+            <ion-button (click)="addUpdateProduct(product)" color="primary" fill="solid">
+              <ion-icon name="pencil"></ion-icon> Editar
+            </ion-button>
+            <ion-button (click)="confirmDeleteProduct(product)" color="danger" fill="solid">
+              <ion-icon name="trash"></ion-icon> Eliminar
+            </ion-button>
           </ion-col>
         </ion-row>
       </ion-grid>

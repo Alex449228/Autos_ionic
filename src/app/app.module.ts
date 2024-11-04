@@ -15,6 +15,7 @@ import { AngularFireAuthModule } from '@angular/fire/compat/auth'; // Para auten
 import { environment } from 'src/environments/environment.prod';
 import { GoogleMapsModule } from '@angular/google-maps';
 import { SharedModule } from './shared/shared.module';
+import { FooterComponent } from './shared/components/footer/footer.component';
 
 @NgModule({
   declarations: [AppComponent],

@@ -1,11 +1,20 @@
-/* maps.component.scss */
+ion-content {
+  --background: transparent;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%; /* Ocupa toda la altura disponible de ion-content */
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+}
+
 .map-canvas {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-  }
-  
-  ion-content {
-    --background: transparent;
-  }
+  width: 100%;
+  height: 100%;
+}
+
+
+

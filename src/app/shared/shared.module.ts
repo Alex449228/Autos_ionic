@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AddUpdateProductComponent } from './components/add-update-product/add-update-product.component';
 import { MapsComponent } from './components/maps/maps.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 @NgModule({
   declarations: [
@@ -15,6 +16,7 @@ import { MapsComponent } from './components/maps/maps.component';
     LogoComponent,
     AddUpdateProductComponent,
     MapsComponent,
+    FooterComponent,
   ],
   exports: [
     HeaderComponent,
@@ -23,6 +25,7 @@ import { MapsComponent } from './components/maps/maps.component';
     ReactiveFormsModule,
     AddUpdateProductComponent,
     MapsComponent,
+    FooterComponent,
   ],
   imports: [CommonModule, IonicModule, ReactiveFormsModule, FormsModule],
 })
